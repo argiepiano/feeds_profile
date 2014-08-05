@@ -30,7 +30,7 @@ function feeds_profile2_feeds_after_save(FeedsSource $source, $entity, $item, $e
   foreach ($config['processor']['config']['mappings'] as $mapping) {
     if (strpos($mapping['target'], 'profile2:') === 0) {
       list($entity_type, $bundle, $field_name) = explode(':', $mapping['target']);
-      $profiles[$bundle][$field_name] = $item[$mapping['source']];
+      $profiles[$bundle][$field_name] = $item[strtolower($mapping['source'])];
     }
   }
 
