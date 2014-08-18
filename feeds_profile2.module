@@ -36,6 +36,8 @@ function feeds_profile2_feeds_after_save(FeedsSource $source, $entity, $item, $e
 
   // Save or update each profile.
   foreach ($profiles as $bundle => $values) {
+    $profile = NULL;
+
     // If editing user, load Profile2 entity.
     if (!empty($entity_id)) {
       $profile = profile2_load_by_user($entity->uid, $bundle);
