@@ -8,7 +8,7 @@ Adds Profile integration for Feeds, by extending the built-in User processor so 
   https://backdropcms.org/guide/modules.
 
 ## Usage
-It's easy! After enabling the module, any importer using the User processor will now include field targets to every field for every Profile profile type. After setting up your mappings, Profile2 profiles will be created/updated after the user is created/updated.
+It's easy! After enabling the module, any importer using the User processor will now include field targets to every field for every Profile profile type. After setting up your mappings, Profile profiles will be created/updated after the user is created/updated.
 
 
 ## Issues
@@ -29,6 +29,7 @@ for complete text.
 
 ## Credits:
 
+* Originally called Feeds Profile2 for Drupal 7, has been renamed Feeds Profile for Backdrop.
 * Ported to Backdrop CMS by [argiepiano](https://github.com/argiepiano).
 
 * Original Drupal maintained module by
