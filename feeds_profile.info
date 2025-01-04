@@ -6,3 +6,4 @@ type = module
 
 dependencies[] = feeds
 dependencies[] = profile
+dependencies[] = entity_plus

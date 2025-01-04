@@ -86,6 +86,10 @@ function feeds_profile_feeds_after_save(FeedsSource $source, $entity, $item, $en
       if (isset($targets[$mapping['target']]['callback'])) {
         // Set mappings and callback for the field
         $callbacks[$bundle][$field_name] = $targets[$mapping['target']]['callback'];
+        // Assures there is always a language value.
+        if (empty($mapping['language'])) {
+          $mapping['language'] = LANGUAGE_NONE;
+        }
         $mappings[$bundle][$field_name] = $mapping;
       }
       $profiles[$bundle][$field_name] = $item[strtolower($mapping['source'])];
