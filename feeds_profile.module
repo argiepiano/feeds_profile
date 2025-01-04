@@ -3,49 +3,49 @@
 /**
  * Implements hook_feeds_processor_targets_alter() from Feeds.
  */
-function feeds_profile2_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
+function feeds_profile_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
   // For user imports, add a target field for every field in each Profile2
   // bundle.
   if ($entity_type == 'user') {
-    foreach (profile2_get_types() as $profile_type) {
-      $fields = field_info_instances('profile2', $profile_type->type);
+    foreach (profile_get_types() as $profile_type) {
+      $fields = field_info_instances('profile', $profile_type->type);
       foreach ($fields as $field) {
-        $targets["profile2:{$field['bundle']}:{$field['field_name']}"] = array(
+        $targets["profile:{$field['bundle']}:{$field['field_name']}"] = array(
           'name' => t($field['label']),
           'description' => t($field['description']),
         );
       }
       // Only variables can be passed by reference
-      $profile2_type = 'profile2';
-      // Invoke hook_feeds_processor_targets() for profile2 fields
-      $new_targets = module_invoke_all('feeds_processor_targets', $profile2_type, $profile_type->type);      
+      $p_type = 'profile';
+      // Invoke hook_feeds_processor_targets() for profile fields
+      $new_targets = module_invoke_all('feeds_processor_targets', $p_type, $profile_type->type);      
 
       // Set mapping targets, replacing existing with targets
       // set with hook_feeds_processor_targets()
       foreach ($new_targets as $target_key => $target) {
-        $targets["profile2:{$profile_type->type}:$target_key"] = $target;
+        $targets["profile:{$profile_type->type}:$target_key"] = $target;
       }
 
       // Store targets prior to invoking alter hook
       $targets_old = $targets;
 
-      // Invoke hook_feeds_processor_targets_alter for profile2 fields
-      drupal_alter('feeds_processor_targets', $targets, $profile2_type, $profile_type->type);
+      // Invoke hook_feeds_processor_targets_alter for profile fields
+      backdrop_alter('feeds_processor_targets', $targets, $p_type, $profile_type->type);
       $targets_new = array_diff_key ($targets, $targets_old);
       if (is_array($targets_new)) {
         foreach ($targets_new as $target_key => $target) {
           unset($targets[$target_key]);
           // Use a custom callback for entityreference fields
-          if (isset($target['callback']) && ($target['callback'] == 'entityreference_feeds_feeds_set_target')) {
-            $target['callback'] = 'profile2_feeds_entityreference_feeds_feeds_set_target';
+          if (isset($target['callback']) && ($target['callback'] == 'entityreference_feeds_set_target')) {
+            $target['callback'] = 'profile_feeds_entityreference_feeds_feeds_set_target';
           }
           // Set new target if it doesn't already exist
-          if (!isset($targets["profile2:{$profile_type->type}:$target_key"])) {
-            $targets["profile2:{$profile_type->type}:$target_key"] = $target;
+          if (!isset($targets["profile:{$profile_type->type}:$target_key"])) {
+            $targets["profile:{$profile_type->type}:$target_key"] = $target;
           }
           else {
             // Target exists, merge with existing
-            $targets["profile2:{$profile_type->type}:$target_key"] = array_merge($targets["profile2:{$profile_type->type}:$target_key"], $target);
+            $targets["profile:{$profile_type->type}:$target_key"] = array_merge($targets["profile:{$profile_type->type}:$target_key"], $target);
           }
         }
       }
@@ -56,23 +56,23 @@ function feeds_profile2_feeds_processor_targets_alter(&$targets, $entity_type, $
 /**
  * Custom callback for entityreference fields
  */
-function profile2_feeds_entityreference_feeds_feeds_set_target($source, $entity, $target, $value, $mapping) {
-  // Check for profile2, just to make sure
-  if (strpos($target,'profile2') === 0) {
-    // Get profile2 bundle, target and mapping
+function profile_feeds_entityreference_feeds_feeds_set_target($source, $entity, $target, $value, $mapping) {
+  // Check for profile, just to make sure
+  if (strpos($target,'profile') === 0) {
+    // Get profile bundle, target and mapping
     list(, $bundle, $target) = explode(':', $target, 3);
     list(, , $mapping['target']) = explode(':', $mapping['target'], 3);
     // Load profile for the user
-    $profile = profile2_load_by_user($entity->uid, $bundle);
+    $profile = profile_load_by_user($entity->uid, $bundle);
     // Pass on to the correct callback
-    call_user_func('entityreference_feeds_feeds_set_target', $source, $profile, $target, $value, $mapping);
+    call_user_func('entityreference_feeds_set_target', $source, $profile, $target, $value, $mapping);
   }
 }
 
 /**
  * Implements hook_feeds_after_save() from Feeds.
  */
-function feeds_profile2_feeds_after_save(FeedsSource $source, $entity, $item, $entity_id) {
+function feeds_profile_feeds_after_save(FeedsSource $source, $entity, $item, $entity_id) {
   $profiles = array();
   $callbacks = array();
   $mappings = array();
@@ -81,7 +81,7 @@ function feeds_profile2_feeds_after_save(FeedsSource $source, $entity, $item, $e
   $config = $source->importer->getConfig();
   $targets = $source->importer->processor->getMappingTargets();
   foreach ($config['processor']['config']['mappings'] as $mapping) {
-    if (strpos($mapping['target'], 'profile2:') === 0) {
+    if (strpos($mapping['target'], 'profile:') === 0) {
       list($entity_type, $bundle, $field_name) = explode(':', $mapping['target'], 3);
       if (isset($targets[$mapping['target']]['callback'])) {
         // Set mappings and callback for the field
@@ -98,19 +98,19 @@ function feeds_profile2_feeds_after_save(FeedsSource $source, $entity, $item, $e
 
     // If editing user, load Profile2 entity.
     if (!empty($entity_id)) {
-      $profile = profile2_load_by_user($entity->uid, $bundle);
+      $profile = profile_load_by_user($entity->uid, $bundle);
     }
 
     // If profile is still not available, create a new one.
     if (empty($profile)) {
-      $profile = profile2_create(array(
+      $profile = profile_create(array(
         'type' => $bundle,
         'uid' => $entity->uid,
       ));
     }
 
     // Load entity wrapper.
-    $profile_wrapper = entity_metadata_wrapper('profile2', $profile);
+    $profile_wrapper = entity_metadata_wrapper('profile', $profile);
 
     // Set mapped field values.
     foreach ($values as $field_name => $value) {

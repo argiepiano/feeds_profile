@@ -1,7 +1,0 @@
-name = Feeds Profile2
-package = Feeds
-description = Adds Profile2 integration for Feeds.
-core = 7.x
-
-dependencies[] = feeds
-dependencies[] = profile2

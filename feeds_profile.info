@@ -1,0 +1,8 @@
+name = Feeds Profile
+package = Feeds
+description = Adds Profile integration for Feeds.
+backdrop = 1.x
+type = module
+
+dependencies[] = feeds
+dependencies[] = profile
